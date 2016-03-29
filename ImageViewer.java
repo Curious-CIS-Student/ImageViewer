@@ -15,6 +15,10 @@ public class ImageViewer
 {
     private JFrame frame;
     private ImagePanel imagePanel;
+    private JLabel filenameLabel;
+    private JLabel statusLabel;
+    private OFImage currentImage = null;
+    static private double VERSION = 1.0;
     
     /**
      * Create an ImageViewer show it on screen.
@@ -26,14 +30,15 @@ public class ImageViewer
 
 
     // ---- implementation of menu functions ----
-    
+
     /**
      * Open function: open a file chooser to select a new image file.
      */
     private void openFile()
     {
-        OFImage image = ImageFileManager.getImage();
-        imagePanel.setImage(image);
+        currentImage = ImageFileManager.getImage();
+        imagePanel.setImage(currentImage);
+        showStatus("Image Loaded");
         frame.pack();
     }
     
@@ -43,6 +48,61 @@ public class ImageViewer
     private void quit()
     {
         System.exit(0);
+    }
+    
+    /**
+     * About function: Display a help menu dialogue with information about the project. (Stub for now)
+     */
+    private void about()
+    {
+        JOptionPane.showMessageDialog(frame, "ImageViewer\n" + VERSION,
+        "About ImageViewer",
+        JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    /**
+     * Darker function: Cause the entire image to become darker.
+     */
+    private void makeDarker()
+    {
+        if (currentImage != null) {
+            currentImage.darker();
+            frame.repaint();
+            showStatus("Applied: darker");
+        }
+        else {
+           showStatus("No image loaded.");
+        }
+    }
+    
+    /**
+     * Lighter function: Cause the entire image to become lighter.
+     */
+    private void makeLighter()
+    {
+        if (currentImage != null) {
+            currentImage.lighter();
+            frame.repaint();
+            showStatus("Applied: lighter");
+        }
+        else {
+           showStatus("No image loaded.");
+        }
+    }
+    
+    /**
+     * Threshold function: Cause the image to have each of its pixels set to either white, gray, or black, depending on the color values of its pixels.
+     */
+    private void threshold()
+    {
+        if (currentImage != null) {
+            currentImage.threshold();
+            frame.repaint();
+            showStatus("Applied: threshold");
+        }
+        else {
+            showStatus("No image loaded.");
+        }
     }
     
     // ---- swing stuff to build the frame and all its components ----
@@ -56,9 +116,16 @@ public class ImageViewer
         makeMenuBar(frame);
         
         Container contentPane = frame.getContentPane();
+        contentPane.setLayout(new BorderLayout());
+        
+        filenameLabel = new JLabel("Image filename");
+        contentPane.add(filenameLabel, BorderLayout.NORTH);
         
         imagePanel = new ImagePanel();
-        contentPane.add(imagePanel);
+        contentPane.add(imagePanel, BorderLayout.CENTER);
+        
+        statusLabel = new JLabel("File Status");
+        contentPane.add(statusLabel, BorderLayout.SOUTH);
 
         // building is done - arrange the components and show        
         frame.pack();
@@ -78,7 +145,7 @@ public class ImageViewer
         JMenuBar menubar = new JMenuBar();
         frame.setJMenuBar(menubar);
         
-        // create the File manu
+        // create the File menu
         JMenu fileMenu = new JMenu("File");
         menubar.add(fileMenu);
         
@@ -95,6 +162,48 @@ public class ImageViewer
                                public void actionPerformed(ActionEvent e) { quit(); }
                            });
         fileMenu.add(quitItem);
-
+        
+        createFilterMenu(menubar);
+        
+        JMenu helpMenu = new JMenu("Help");
+        menubar.add(helpMenu);
+        
+        JMenuItem aboutItem = new JMenuItem("About ImageViewer...");
+            aboutItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, SHORTCUT_MASK));
+             aboutItem.addActionListener(new ActionListener() {
+                             public void actionPerformed(ActionEvent e) {about(); }
+                         });
+        helpMenu.add(aboutItem);      
+    }
+    
+    private void createFilterMenu(JMenuBar menubar)
+    {
+        // create the Filter menu
+        JMenu filterMenu = new JMenu("Filter");
+        menubar.add(filterMenu);
+        
+        JMenuItem darkerItem = new JMenuItem("Darker");
+        darkerItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { makeDarker(); }
+        });
+        filterMenu.add(darkerItem);
+        
+        JMenuItem lighterItem = new JMenuItem("Lighter");
+        lighterItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { makeLighter(); }
+        });
+        filterMenu.add(lighterItem);
+        
+        JMenuItem thresholdItem = new JMenuItem("Threshold");
+        thresholdItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) { threshold(); }
+        });
+        filterMenu.add(thresholdItem);
+    }
+    
+    private void showStatus(String statusValue)
+    {
+        statusLabel.setText(statusValue);
+        
     }
 }
